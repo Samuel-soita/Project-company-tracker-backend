@@ -7,25 +7,26 @@ import json
 def seeded_project(app):
     """Seed a project and task for testing."""
     with app.app_context():
-        student = User.query.filter_by(email="student1@example.com").first()
+        employee = User.query.filter_by(email="employee1@company.com").first()
         # Seed a project
-        project = Project(name="Test Project", owner_id=student.id)
+        project = Project(name="Test Project", owner_id=employee.id)
         db.session.add(project)
         db.session.commit()
 
         # Seed a task
-        task = Task(title="Initial Task", project_id=project.id, assignee_id=student.id)
+        task = Task(title="Initial Task", project_id=project.id, assignee_id=employee.id)
         db.session.add(task)
         db.session.commit()
 
         # Return only IDs to avoid DetachedInstanceError
         return {
-            "student_id": student.id,
+            "employee_id": employee.id,
             "project_id": project.id,
             "task_id": task.id
         }
 
 def test_get_all_tasks(client, seeded_project):
+    employee_id = seeded_project["employee_id"]
     resp = client.get("/tasks/")
     assert resp.status_code == 200
     data = resp.get_json()
@@ -33,6 +34,7 @@ def test_get_all_tasks(client, seeded_project):
 
 def test_get_task_by_id(client, seeded_project):
     task_id = seeded_project["task_id"]
+    employee_id = seeded_project["employee_id"]
     resp = client.get(f"/tasks/{task_id}")
     assert resp.status_code == 200
     data = resp.get_json()
@@ -40,11 +42,11 @@ def test_get_task_by_id(client, seeded_project):
 
 def test_create_task(client, seeded_project):
     project_id = seeded_project["project_id"]
-    student_id = seeded_project["student_id"]
+    employee_id = seeded_project["employee_id"]
     payload = {
         "title": "New Task",
         "project_id": project_id,
-        "assignee_id": student_id,
+        "assignee_id": employee_id,
         "status": "In Progress"
     }
     resp = client.post("/tasks/", data=json.dumps(payload), content_type="application/json")
@@ -78,4 +80,5 @@ def test_get_tasks_by_project(client, seeded_project):
     resp = client.get(f"/tasks/project/{project_id}")
     assert resp.status_code == 200
     data = resp.get_json()
-    assert all("assignee_id" in t for t in data)
+    assert "tasks" in data
+    assert all("assignee_id" in t for t in data["tasks"])

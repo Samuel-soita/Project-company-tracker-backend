@@ -30,3 +30,15 @@ class Config:
 
     # SendGrid
     SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY')
+
+    # Security & Environment
+    FLASK_ENV = os.environ.get('FLASK_ENV', 'development')
+    NODE_ENV = os.environ.get('NODE_ENV', 'development')
+    FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:5173')
+
+    # JWT Configuration
+    JWT_COOKIE_SECURE = FLASK_ENV == 'production' or NODE_ENV == 'production'
+    JWT_COOKIE_SAMESITE = 'strict'
+
+    # CORS
+    CORS_ORIGIN = os.environ.get('CORS_ORIGIN', FRONTEND_URL)

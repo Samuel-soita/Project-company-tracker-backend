@@ -2,6 +2,8 @@ import os
 from flask import Flask, request
 from flask_migrate import Migrate
 from flask_cors import CORS
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from flasgger import Swagger
 from app.config import Config
 from app.models import db
@@ -21,6 +23,14 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
 
+    # Rate limiting setup
+    limiter = Limiter(
+        get_remote_address,
+        app=app,
+        default_limits=["100 per minute"],
+        storage_uri="memory://",
+    )
+
     # Swagger setup
     Swagger(app)
 
@@ -28,6 +38,8 @@ def create_app():
     allowed_origins = {
         "http://localhost:5173",
         "http://127.0.0.1:5173",
+        "http://localhost:5176",
+        "http://127.0.0.1:5176",
         "https://project-tracker-frontend-samuels-projects-2d3d52d2.vercel.app",
     }
 
@@ -36,13 +48,13 @@ def create_app():
     if frontend_url:
         allowed_origins.add(frontend_url)
 
-    # ✅ Apply wide-open CORS (Render-friendly)
+    # ✅ Apply CORS with credentials support for cookie-based auth
     CORS(
         app,
         supports_credentials=True,
-        origins=list(allowed_origins) + ["*"],  # allow all temporarily
+        origins=list(allowed_origins),  # Remove wildcard for security
         methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-        allow_headers=["Content-Type", "Authorization"],
+        allow_headers=["Content-Type", "Authorization", "X-Requested-With"],
         expose_headers=["Content-Type", "Authorization"],
     )
 

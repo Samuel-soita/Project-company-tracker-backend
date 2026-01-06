@@ -7,8 +7,8 @@ from sqlalchemy import text
 # -----------------------------
 # Load environment variables for passwords
 # -----------------------------
-ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "adminpass")
-STUDENT_PASSWORD = os.environ.get("STUDENT_PASSWORD", "studentpass")
+MANAGER_PASSWORD = os.environ.get("MANAGER_PASSWORD", "adminpass")
+EMPLOYEE_PASSWORD = os.environ.get("EMPLOYEE_PASSWORD", "employeepass")
 
 # -----------------------------
 # Initialize app context
@@ -28,62 +28,62 @@ with app.app_context():
     # -----------------------------
     # Seed Classes
     # -----------------------------
-    print("⚡ Seeding classes...")
-    classes = [
-        Class(name="Fullstack Web"),
-        Class(name="Android Development"),
-        Class(name="Data Science"),
-        Class(name="DevOps Track"),
-        Class(name="Product Design"),
-        Class(name="Cyber Security"),
+    print("⚡ Seeding project types...")
+    project_types = [
+        Class(name="Web Application"),
+        Class(name="Mobile Development"),
+        Class(name="Data Analytics"),
+        Class(name="DevOps & Infrastructure"),
+        Class(name="Product Management"),
+        Class(name="Cybersecurity"),
     ]
-    db.session.add_all(classes)
+    db.session.add_all(project_types)
     db.session.commit()
-    print(f"✅ Classes seeded: {len(classes)} classes")
+    print(f"✅ Project types seeded: {len(project_types)} types")
 
     # -----------------------------
     # Seed Users
     # -----------------------------
     print("⚡ Seeding users...")
-    admin = User(
-        name="Admin User",
-        email="admin@test.com",
-        role="Admin"
+    manager = User(
+        name="Manager User",
+        email="manager@test.com",
+        role="Manager"
     )
-    admin.set_password(ADMIN_PASSWORD)
+    manager.set_password(MANAGER_PASSWORD)
 
-    students = []
+    employees = []
     for i in range(1, 6):
-        student = User(
-            name=f"Student {i}",
-            email=f"student{i}@example.com",
-            role="Student"
+        employee = User(
+            name=f"Employee {i}",
+            email=f"employee{i}@company.com",
+            role="Employee"
         )
-        student.set_password(STUDENT_PASSWORD)
+        employee.set_password(EMPLOYEE_PASSWORD)
 
-        # Assign a class deterministically
-        student.class_id = classes[i % len(classes)].id
+        # Assign a project type deterministically
+        employee.class_id = project_types[i % len(project_types)].id
 
-        students.append(student)
+        employees.append(employee)
 
-    db.session.add(admin)
-    db.session.add_all(students)
+    db.session.add(manager)
+    db.session.add_all(employees)
     db.session.commit()
-    print("✅ Users seeded: 1 Admin + 5 Students")
+    print("✅ Users seeded: 1 Manager + 5 Employees")
 
     # -----------------------------
     # Seed additional test users for pytest
     # -----------------------------
     test_users = [
-        {"name": "Owner Test", "email": "owner@test.com", "role": "Student", "password": "pass", "class": classes[0]},
-        {"name": "User1 Test", "email": "user1@test.com", "role": "Student", "password": "studentpass", "class": classes[1]},
-        {"name": "Student Test", "email": "student@test.com", "role": "Student", "password": "studentpass", "class": classes[2]},
+        {"name": "Owner Test", "email": "owner@test.com", "role": "Employee", "password": "pass", "project_type": project_types[0]},
+        {"name": "User1 Test", "email": "user1@test.com", "role": "Employee", "password": "employeepass", "project_type": project_types[1]},
+        {"name": "Employee Test", "email": "employee@test.com", "role": "Employee", "password": "employeepass", "project_type": project_types[2]},
     ]
 
     for u in test_users:
         user = User(name=u["name"], email=u["email"], role=u["role"])
         user.set_password(u["password"])
-        user.class_id = u["class"].id
+        user.class_id = u["project_type"].id
         db.session.add(user)
     db.session.commit()
     print("✅ Test users seeded for pytest")
@@ -91,28 +91,28 @@ with app.app_context():
     # -----------------------------
     # Seed Cohorts
     # -----------------------------
-    print("⚡ Seeding cohorts...")
-    cohorts = [
+    print("⚡ Seeding teams...")
+    teams = [
         Cohort(
-            name="Cohort Alpha",
+            name="Frontend Team",
             start_date=date(2025, 1, 15),
             end_date=date(2025, 6, 30)
         ),
         Cohort(
-            name="Cohort Beta",
+            name="Backend Team",
             start_date=date(2025, 7, 1),
             end_date=date(2025, 12, 15)
         )
     ]
-    db.session.add_all(cohorts)
+    db.session.add_all(teams)
     db.session.commit()
-    print("✅ Cohorts seeded: 2 cohorts")
+    print("✅ Teams seeded: 2 teams")
 
-    # Assign students to cohorts deterministically
-    for i, student in enumerate(students):
-        student.cohort_id = cohorts[i % len(cohorts)].id
+    # Assign employees to teams deterministically
+    for i, employee in enumerate(employees):
+        employee.cohort_id = teams[i % len(teams)].id
     db.session.commit()
-    print("✅ Students assigned to cohorts")
+    print("✅ Employees assigned to teams")
 
     # -----------------------------
     # Seed Projects
@@ -134,13 +134,13 @@ with app.app_context():
     projects = []
 
     for i, template in enumerate(project_templates):
-        owner = students[i % len(students)]
+        owner = employees[i % len(employees)]
         project = Project(
             name=template["name"],
             description=template["description"],
             owner_id=owner.id,
-            class_id=owner.class_id,  # Assign same class as the owner
-            cohort_id=owner.cohort_id,  # Assign same cohort as the owner
+            class_id=owner.class_id,  # Assign same project type as the owner
+            cohort_id=owner.cohort_id,  # Assign same team as the owner
             github_link=f"https://github.com/{owner.email.split('@')[0]}/{template['name'].replace(' ', '').lower()}",
             status=statuses[i % len(statuses)]
         )
@@ -155,7 +155,7 @@ with app.app_context():
     # -----------------------------
     print("⚡ Seeding project members & activity logs...")
     for project in projects:
-        possible_members = [s for s in students if s.id != project.owner_id]
+        possible_members = [e for e in employees if e.id != project.owner_id]
         members_to_add = possible_members[:2]
         for member in members_to_add:
             db.session.add(ProjectMember(project_id=project.id, user_id=member.id, status="accepted"))
@@ -192,7 +192,7 @@ with app.app_context():
                 description=f"Task {i+1} for {project.name}",
                 status=task_statuses[i % len(task_statuses)],
                 project_id=project.id,
-                assignee_id=students[i % len(students)].id,
+                assignee_id=employees[i % len(employees)].id,
                 created_at=datetime.utcnow()
             )
             db.session.add(task)
@@ -205,11 +205,11 @@ with app.app_context():
     # -----------------------------
     # Seed Admin Activity Logs
     # -----------------------------
-    admin_logs = [
-        ActivityLog(user_id=admin.id, action="Seeded database with admin, students, and tasks"),
-        ActivityLog(user_id=admin.id, action="Reviewed all project submissions")
+    manager_logs = [
+        ActivityLog(user_id=manager.id, action="Seeded database with manager, employees, and tasks"),
+        ActivityLog(user_id=manager.id, action="Reviewed all project submissions")
     ]
-    db.session.add_all(admin_logs)
+    db.session.add_all(manager_logs)
     db.session.commit()
 
     print("🎉 Database seeded successfully! 2FA is disabled by default. Users can enable it after login.")

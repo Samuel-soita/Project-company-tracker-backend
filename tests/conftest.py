@@ -32,44 +32,19 @@ def client(app):
     return app.test_client()
 
 # -----------------------------
-# Mock email sending and auto-verify users
+# Mock email sending for 2FA
 # -----------------------------
 @pytest.fixture(autouse=True)
-def mock_email_and_auto_verify(app):
+def mock_email_sending(app):
     """
-    1) Patch send_verification_email to avoid external calls.
-    2) Auto-verify newly registered users.
+    Mock email sending functions to avoid external calls during tests.
     """
-    from app.routes import auth_routes
+    from app.utils import email_utils
 
-    # patch send_verification_email
-    send_patch = patch("app.routes.auth_routes.send_verification_email")
-    mock_send = send_patch.start()
-    mock_send.return_value = True
-
-    # Wrap register to auto-verify
-    original_register = auth_routes.register
-
-    def register_and_verify(*args, **kwargs):
-        resp = original_register(*args, **kwargs)
-        try:
-            data = flask_request.get_json(silent=True) or {}
-            email = data.get("email")
-            if email:
-                user = User.query.filter_by(email=email).first()
-                if user and not user.is_verified:
-                    user.is_verified = True
-                    db.session.commit()
-        except Exception:
-            pass
-        return resp
-
-    auth_routes.register = register_and_verify
-
-    yield mock_send
-
-    auth_routes.register = original_register
-    send_patch.stop()
+    # Mock 2FA email sending
+    with patch("app.utils.email_utils.send_2fa_code_email") as mock_send:
+        mock_send.return_value = True
+        yield mock_send
 
 # -----------------------------
 # Ensure admin exists
@@ -78,16 +53,15 @@ def mock_email_and_auto_verify(app):
 def ensure_admin_exists(app):
     """Ensure an admin user exists in the test DB."""
     with app.app_context():
-        admin = User.query.filter_by(email="admin@test.com").first()
-        if not admin:
-            admin = User(
-                name="Admin",
-                email="admin@test.com",
-                role="Admin",
-                is_verified=True
+        manager = User.query.filter_by(email="manager@test.com").first()
+        if not manager:
+            manager = User(
+                name="Manager",
+                email="manager@test.com",
+                role="Manager"
             )
-            admin.set_password("adminpass")
-            db.session.add(admin)
+            manager.set_password("adminpass")
+            db.session.add(manager)
             db.session.commit()
 
 # -----------------------------
@@ -97,14 +71,13 @@ def ensure_admin_exists(app):
 def seed_test_users(app):
     """Ensure a test student user exists in the test DB."""
     with app.app_context():
-        student = User.query.filter_by(email="student1@example.com").first()
-        if not student:
-            student = User(
-                name="Student 1",
-                email="student1@example.com",
-                role="Student",
-                is_verified=True
+        employee = User.query.filter_by(email="employee1@company.com").first()
+        if not employee:
+            employee = User(
+                name="Employee 1",
+                email="employee1@company.com",
+                role="Employee"
             )
-            student.set_password("studentpass")
-            db.session.add(student)
+            employee.set_password("employeepass")
+            db.session.add(employee)
             db.session.commit()

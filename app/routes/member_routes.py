@@ -17,7 +17,7 @@ def invite_member(current_user, project_id):
     if not project:
         return jsonify({'message': 'Project not found'}), 404
 
-    if project.owner_id != current_user.id and current_user.role != 'Admin':
+    if project.owner_id != current_user.id and current_user.role != 'Manager':
         return jsonify({'message': 'Not authorized'}), 403
 
     data = request.get_json()
@@ -78,7 +78,7 @@ def remove_member(current_user, project_id):
     if not project:
         return jsonify({'message': 'Project not found'}), 404
 
-    if project.owner_id != current_user.id and current_user.role != 'Admin':
+    if project.owner_id != current_user.id and current_user.role != 'Manager':
         return jsonify({'message': 'Not authorized'}), 403
 
     user_id = request.json.get('user_id')

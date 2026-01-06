@@ -49,7 +49,7 @@ class User(db.Model):
     name = db.Column(db.String(150), nullable=False)
     email = db.Column(db.String(150), unique=True, nullable=False)
     password_hash = db.Column(db.String(512), nullable=False)
-    role = db.Column(db.String(50), default='Student')
+    role = db.Column(db.String(50), default='Employee')
     created_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     cohort_id = db.Column(db.Integer, db.ForeignKey('cohorts.id'), nullable=True)

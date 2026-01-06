@@ -3,8 +3,9 @@ import os
 import logging
 from datetime import datetime, timedelta, timezone
 from functools import wraps
-from flask import request, jsonify, current_app
+from flask import request, current_app, jsonify
 from app.models import User
+from app.utils.error_handlers import send_unauthorized_error
 from app import db
 
 # -----------------------------
@@ -41,20 +42,17 @@ def token_required(f):
     """
     Decorator to protect routes requiring JWT authentication.
     Adds 'current_user' as the first argument to the route.
+    Reads JWT from httpOnly cookie instead of Authorization header.
     """
     @wraps(f)
     def decorated(*args, **kwargs):
         token = None
 
-        # JWT expected in 'Authorization: Bearer <token>'
-        auth_header = request.headers.get("Authorization", "")
-        if auth_header.startswith("Bearer "):
-            token = auth_header.split(" ")[1]
+        # JWT expected in httpOnly cookie
+        token = request.cookies.get('jwt')
 
         if not token:
-            response = jsonify({"message": "Token is missing!"})
-            response.status_code = 401
-            return response
+            return send_unauthorized_error("Authentication required. Please log in.")
 
         try:
             secret_key = current_app.config.get("SECRET_KEY") or os.environ.get("SECRET_KEY")
@@ -64,18 +62,12 @@ def token_required(f):
             if not current_user:
                 raise Exception("User not found")
         except jwt.ExpiredSignatureError:
-            response = jsonify({"message": "Token has expired. Please log in again."})
-            response.status_code = 401
-            return response
+            return send_unauthorized_error("Token has expired. Please log in again.")
         except jwt.InvalidTokenError:
-            response = jsonify({"message": "Invalid token. Please log in again."})
-            response.status_code = 401
-            return response
+            return send_unauthorized_error("Invalid token. Please log in again.")
         except Exception as e:
             logger.error(f"JWT verification error: {str(e)}")
-            response = jsonify({"message": "Token verification failed."})
-            response.status_code = 401
-            return response
+            return send_unauthorized_error("Token verification failed.")
 
         return f(current_user, *args, **kwargs)
 

@@ -9,7 +9,7 @@ user_routes = Blueprint('user_routes', __name__)
 # -----------------------------
 @user_routes.route('/users/', methods=['GET'])
 @token_required
-@role_required(['Admin'])
+@role_required(['Manager'])
 def list_users(current_user):
     users = db.session.execute(db.select(User)).scalars().all()
     result = [{'id': u.id, 'name': u.name, 'email': u.email, 'role': u.role} for u in users]
@@ -26,7 +26,7 @@ def get_user(current_user, user_id):
         return jsonify({'message': 'User not found'}), 404
 
     # Allow self-access or admin
-    if current_user.id != user.id and current_user.role != 'Admin':
+    if current_user.id != user.id and current_user.role != 'Manager':
         return jsonify({'message': 'You are not authorized to access this resource.'}), 403
 
     return jsonify({'id': user.id, 'name': user.name, 'email': user.email, 'role': user.role})
@@ -36,7 +36,7 @@ def get_user(current_user, user_id):
 # -----------------------------
 @user_routes.route('/users/', methods=['POST'])
 @token_required
-@role_required(['Admin'])
+@role_required(['Manager'])
 def create_user(current_user):
     data = request.get_json()
     user = User(
@@ -60,7 +60,7 @@ def update_user(current_user, user_id):
         return jsonify({'message': 'User not found'}), 404
 
     # Allow self-update or admin
-    if current_user.id != user.id and current_user.role != 'Admin':
+    if current_user.id != user.id and current_user.role != 'Manager':
         return jsonify({'message': 'Not authorized'}), 403
 
     data = request.get_json()
@@ -85,7 +85,7 @@ def delete_user(current_user, user_id):
         return jsonify({'message': 'User not found'}), 404
 
     # Allow self-delete or admin
-    if current_user.id != user.id and current_user.role != 'Admin':
+    if current_user.id != user.id and current_user.role != 'Manager':
         return jsonify({'message': 'Not authorized'}), 403
 
     db.session.delete(user)

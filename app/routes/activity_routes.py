@@ -17,7 +17,7 @@ logger.setLevel(logging.INFO)
 # -----------------------------
 @activity_routes.route('/activities/activities', methods=['GET'])
 @token_required
-@role_required(['Admin'])
+@role_required(['Manager'])
 def list_activities(current_user):
     try:
         activities_paginated = paginate(ActivityLog.query.order_by(ActivityLog.created_at.desc()), request)

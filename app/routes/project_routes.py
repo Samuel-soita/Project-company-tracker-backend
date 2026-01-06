@@ -25,7 +25,7 @@ def owner_or_admin_required(model_class, id_arg='project_id'):
             obj = db.session.get(model_class, kwargs[id_arg])
             if not obj:
                 return jsonify({'message': f"{model_class.__name__} not found"}), 404
-            if current_user.role != 'Admin' and getattr(obj, 'owner_id', None) != current_user.id:
+            if current_user.role != 'Manager' and getattr(obj, 'owner_id', None) != current_user.id:
                 logger.warning(f"Unauthorized access by user {current_user.id}")
                 return jsonify({'message': 'Not authorized'}), 403
             return f(current_user, *args, **kwargs)
@@ -47,6 +47,10 @@ def add_project(current_user):
         return jsonify({'message': 'Class is required'}), 400
     if not data.get('cohort_id'):
         return jsonify({'message': 'Cohort is required'}), 400
+
+    # Validate that user belongs to the specified team (managers can create projects in any team)
+    if current_user.role != 'Manager' and current_user.cohort_id != data['cohort_id']:
+        return jsonify({'message': 'You must belong to the specified team to create a project in it'}), 403
 
     project = Project(
         name=data['name'],

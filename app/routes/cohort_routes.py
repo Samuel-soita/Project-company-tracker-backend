@@ -18,7 +18,7 @@ logger.setLevel(logging.INFO)
 # -----------------------------
 @cohort_routes.route('/cohorts/', methods=['POST'])
 @token_required
-@role_required(['Admin'])
+@role_required(['Manager'])
 def add_cohort(current_user):
     data = request.get_json()
     if not data or not data.get('name'):
@@ -73,7 +73,7 @@ def list_cohorts(current_user):
 # -----------------------------
 @cohort_routes.route('/cohorts/<int:cohort_id>', methods=['PUT'])
 @token_required
-@role_required(['Admin'])
+@role_required(['Manager'])
 def edit_cohort(current_user, cohort_id):
     cohort = Cohort.query.get_or_404(cohort_id)
     data = request.get_json()
@@ -99,7 +99,7 @@ def edit_cohort(current_user, cohort_id):
 # -----------------------------
 @cohort_routes.route('/cohorts/<int:cohort_id>', methods=['DELETE'])
 @token_required
-@role_required(['Admin'])
+@role_required(['Manager'])
 def remove_cohort(current_user, cohort_id):
     cohort = Cohort.query.get_or_404(cohort_id)
 

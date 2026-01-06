@@ -98,7 +98,7 @@ def test_project_crud(client):
 
     res = client.post('/projects', json=project_data)
     assert res.status_code == 403
-    assert 'cohort' in res.json['message'].lower()
+    assert 'team' in res.json['message'].lower()
 
     # -----------------------------
     # Retrieve project

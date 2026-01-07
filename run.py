@@ -40,6 +40,7 @@ def create_app():
         "http://127.0.0.1:5173",
         "http://localhost:5176",
         "http://127.0.0.1:5176",
+        "https://project-tracker-frontend-sandy.vercel.app",
         "https://project-tracker-frontend-samuels-projects-2d3d52d2.vercel.app",
     }
 

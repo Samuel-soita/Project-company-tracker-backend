@@ -19,11 +19,11 @@ with app.app_context():
     # -----------------------------
     # Truncate tables & reset identities
     # -----------------------------
-    print("⚠️ Truncating all tables...")
-    db.session.execute(
-        text('TRUNCATE TABLE users, cohorts, classes, projects, project_members, tasks, activity_logs RESTART IDENTITY CASCADE')
-    )
-    db.session.commit()
+    # print("⚠️ Truncating all tables...")
+    # db.session.execute(
+    #     text('TRUNCATE TABLE users, cohorts, classes, projects, project_members, tasks, activity_logs RESTART IDENTITY CASCADE')
+    # )
+    # db.session.commit()
 
     # -----------------------------
     # Seed Classes

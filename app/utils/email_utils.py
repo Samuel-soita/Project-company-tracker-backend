@@ -99,13 +99,13 @@ def send_invitation_email(to_email, project_name, inviter_name=None, project_id=
                         </div>
                         <p>To accept or decline this invitation:</p>
                         <ol style="line-height: 2;">
-                            <li>Log in to your Moringa Project Planner account</li>
-                            <li>Click the notification bell icon in the dashboard header</li>
-                            <li>Click Accept or Decline on your invitation</li>
+                            <li>Log in to your Smirror Project Tracker account</li>
+                            <li>Go to your dashboard</li>
+                            <li>Find the project and click Accept or Decline</li> on your invitation</li>
                         </ol>
                     </div>
                     <div class="footer">
-                        <p>This is an automated email from Moringa Project Planner. Please do not reply to this email.</p>
+                        <p>This is an automated email from Smirror Project Tracker. Please do not reply to this email.</p>
                     </div>
                 </div>
             </body>

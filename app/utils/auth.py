@@ -46,6 +46,10 @@ def token_required(f):
     """
     @wraps(f)
     def decorated(*args, **kwargs):
+        # Allow preflight requests to pass through without executing route logic
+        if request.method == 'OPTIONS':
+            return '', 204
+
         token = None
 
         # JWT expected in httpOnly cookie

@@ -1,9 +1,10 @@
 from flask import Blueprint, request, jsonify
 from sqlalchemy.exc import SQLAlchemyError
-from app.models import db, Project, ProjectMember, User
+from app.models import db, Project, ProjectMember, User, Notification
 from app.utils.auth import token_required
 from app.utils.activity_log import log_activity
 from app.utils.email_utils import send_invitation_email
+from datetime import datetime, timezone
 
 member_routes = Blueprint('member_routes', __name__)
 
@@ -26,25 +27,40 @@ def invite_member(current_user, project_id):
     if not email:
         return jsonify({'message': 'Email is required'}), 400
 
-    user = User.query.filter_by(email=email).first()
-    if not user:
+    target_user = User.query.filter_by(email=email).first()
+    if not target_user:
         return jsonify({'message': 'User not found'}), 404
 
-    existing = ProjectMember.query.filter_by(project_id=project_id, user_id=user.id).first()
+    existing = ProjectMember.query.filter_by(project_id=project_id, user_id=target_user.id).first()
     if existing:
         return jsonify({'message': 'User already invited'}), 400
 
     try:
-        invitation = ProjectMember(project_id=project_id, user_id=user.id, status='pending', role=role)
-        db.session.add(invitation)
+        new_member = ProjectMember(
+            project_id=project.id,
+            user_id=target_user.id,
+            role=role,
+            status='pending'
+        )
+        db.session.add(new_member)
+        
+        # Create notification for the invited user
+        notification = Notification(
+            user_id=target_user.id,
+            type='project_invite',
+            message=f'You have been invited to join the project "{project.name}" as a {role}.',
+            link=f'/projects/{project.id}/invitations' # Link to where they can accept/decline
+        )
+        db.session.add(notification)
+        
         db.session.commit()
-        log_activity(current_user.id, f"Invited {user.email} as {role} to project {project.name}")
+        log_activity(current_user.id, f"Invited {target_user.email} as {role} to project {project.name}")
 
         # Attempt to send email notification
         email_sent = False
         email_error = None
         try:
-            send_invitation_email(user.email, project.name, current_user.name, project.id, user.id)
+            send_invitation_email(target_user.email, project.name, current_user.name, project.id, target_user.id)
             email_sent = True
         except ValueError as ve:
             # Invalid API key or configuration error
@@ -62,7 +78,8 @@ def invite_member(current_user, project_id):
         return jsonify({
             'message': response_message,
             'email_sent': email_sent,
-            'email_error': email_error
+            'email_error': email_error,
+            'id': new_member.id
         }), 201
     except SQLAlchemyError as e:
         db.session.rollback()
@@ -91,9 +108,19 @@ def remove_member(current_user, project_id):
 
     try:
         db.session.delete(member)
+        
+        # Create notification for the removed user
+        notification = Notification(
+            user_id=user_id,
+            type='project_removed',
+            message=f'You have been removed from the project "{project.name}".',
+            link='/dashboard'
+        )
+        db.session.add(notification)
+        
         db.session.commit()
         log_activity(current_user.id, f"Removed user {user_id} from project {project.name}")
-        return jsonify({'message': 'Member removed'}), 200
+        return jsonify({'message': 'Member removed successfully'}), 200
     except SQLAlchemyError as e:
         db.session.rollback()
         return jsonify({'message': 'Failed to remove member', 'error': str(e)}), 500
@@ -150,6 +177,7 @@ def respond_invitation(current_user, project_id):
             db.session.delete(invitation)
         else:
             invitation.status = 'accepted'
+            invitation.joined_at = datetime.now(timezone.utc)
 
         db.session.commit()
         log_activity(current_user.id, f"{action.title()}ed invitation for project {project_id}")
@@ -219,6 +247,17 @@ def respond_invitation_email(project_id, user_id, action):
         else:
             # Accept the invitation
             invitation.status = 'accepted'
+            invitation.joined_at = datetime.now(timezone.utc)
+            
+            # Notify project owner
+            notification = Notification(
+                user_id=project.owner_id,
+                type='invite_accepted',
+                message=f'{user.name} accepted the invitation to project "{project.name}".',
+                link=f'/projects/{project.id}'
+            )
+            db.session.add(notification)
+            
             db.session.commit()
             log_activity(user_id, f"Accepted invitation for project {project.name}")
 

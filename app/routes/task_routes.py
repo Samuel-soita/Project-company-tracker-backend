@@ -23,6 +23,9 @@ def get_tasks():
             'title': t.title,
             'description': t.description,
             'status': t.status,
+            'priority': t.priority,
+            'due_date': t.due_date.isoformat() if t.due_date else None,
+            'sprint_id': t.sprint_id,
             'project_id': t.project_id,
             'assignee_id': t.assignee_id,
             'created_at': t.created_at.isoformat()
@@ -42,6 +45,9 @@ def get_task(task_id):
         'title': task.title,
         'description': task.description,
         'status': task.status,
+        'priority': task.priority,
+        'due_date': task.due_date.isoformat() if task.due_date else None,
+        'sprint_id': task.sprint_id,
         'project_id': task.project_id,
         'assignee_id': task.assignee_id,
         'created_at': task.created_at.isoformat()
@@ -68,12 +74,19 @@ def create_task():
             return jsonify({'error': 'Assignee not found'}), 404
         assignee_id = assignee.id
 
+    due_date = None
+    if data.get('due_date'):
+        due_date = datetime.fromisoformat(data['due_date'].replace('Z', '+00:00'))
+
     new_task = Task(
         title=data['title'],
         description=data.get('description'),
         project_id=project.id,
         assignee_id=assignee_id,
-        status=data.get('status', 'To Do')
+        sprint_id=data.get('sprint_id'),
+        status=data.get('status', 'To Do'),
+        priority=data.get('priority', 'Medium'),
+        due_date=due_date
     )
 
     db.session.add(new_task)
@@ -98,6 +111,15 @@ def update_task(task_id):
         task.description = data['description']
     if 'status' in data:
         task.status = data['status']
+    if 'priority' in data:
+        task.priority = data['priority']
+    if 'sprint_id' in data:
+        task.sprint_id = data['sprint_id']
+    if 'due_date' in data:
+        if data['due_date']:
+            task.due_date = datetime.fromisoformat(data['due_date'].replace('Z', '+00:00'))
+        else:
+            task.due_date = None
     if 'assignee_id' in data:
         assignee = db.session.get(User, data['assignee_id'])
         if not assignee:
@@ -134,6 +156,9 @@ def get_tasks_by_project(project_id):
                 'title': t.title,
                 'description': t.description,
                 'status': t.status,
+                'priority': t.priority,
+                'due_date': t.due_date.isoformat() if t.due_date else None,
+                'sprint_id': t.sprint_id,
                 'assignee_id': t.assignee_id,
                 'assignee': {
                     'id': t.assignee.id,

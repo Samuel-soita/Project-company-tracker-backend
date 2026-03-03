@@ -1,7 +1,7 @@
 import logging
 from flask import Blueprint, request, jsonify
 from sqlalchemy.exc import SQLAlchemyError
-from app.models import db, Project, ProjectMember, User, Class
+from app.models import db, Project, ProjectMember, User, Class, Notification
 from app.utils.auth import token_required
 from app.utils.pagination import paginate
 from app.utils.activity_log import log_activity
@@ -64,6 +64,17 @@ def add_project(current_user):
 
     try:
         db.session.add(project)
+        db.session.flush() # Get project.id
+
+        # Insert owner into ProjectMember
+        owner_member = ProjectMember(
+            project_id=project.id,
+            user_id=current_user.id,
+            role='owner',
+            status='accepted'
+        )
+        db.session.add(owner_member)
+        
         db.session.commit()
         log_activity(current_user.id, f"Created project: {project.name}")
         logger.info(f"Project {project.id} created by user {current_user.id}")
@@ -334,6 +345,17 @@ def change_project_status(current_user, project_id):
 
     project.status = status
     try:
+        # Notify members about status change
+        for member in project.members:
+            if member.user_id != current_user.id:
+                notification = Notification(
+                    user_id=member.user_id,
+                    type='project_status_change',
+                    message=f'Project "{project.name}" status changed to {status}.',
+                    link=f'/projects/{project.id}'
+                )
+                db.session.add(notification)
+                
         db.session.commit()
         log_activity(current_user.id, f"Changed status of project {project.name} to {status}")
         logger.info(f"Project {project.id} status changed to {status} by user {current_user.id}")

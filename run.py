@@ -17,6 +17,12 @@ from app.routes.member_routes import member_routes
 from app.routes.activity_routes import activity_routes
 from app.routes.task_routes import task_bp
 from app.routes.class_routes import class_bp
+from app.routes.comment_routes import comment_routes
+from app.routes.attachment_routes import attachment_routes
+from app.routes.sprint_routes import sprint_routes
+from app.routes.time_routes import time_routes
+from app.routes.notification_routes import notification_routes
+from app.routes.dashboard_routes import dashboard_routes
 
 
 def create_app():
@@ -83,6 +89,12 @@ def create_app():
     app.register_blueprint(activity_routes)
     app.register_blueprint(task_bp)
     app.register_blueprint(class_bp)
+    app.register_blueprint(comment_routes)
+    app.register_blueprint(attachment_routes)
+    app.register_blueprint(sprint_routes)
+    app.register_blueprint(time_routes)
+    app.register_blueprint(notification_routes)
+    app.register_blueprint(dashboard_routes)
 
     # Health check endpoint
     @app.route("/health")

@@ -12,10 +12,7 @@ def app():
     app = create_app()
     app.config.update({
         "TESTING": True,
-        "SQLALCHEMY_DATABASE_URI": os.getenv(
-            "DATABASE_URL",
-            "postgresql://postgres:newpassword@localhost:5432/projectx_db"
-        ),
+        "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
         "SECRET_KEY": "testsecretkey",
         "SQLALCHEMY_TRACK_MODIFICATIONS": False,
     })

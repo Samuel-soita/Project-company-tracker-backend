@@ -1,5 +1,3 @@
-venv/
-<<<<<<< HEAD
 # Python cache and bytecode
 __pycache__/
 *.pyc
@@ -9,10 +7,13 @@ __pycache__/
 # Virtual environments
 venv/
 env/
+instance/
 
 # Environment & secret files
 .env
 *.env
+*.db
+*.sqlite3
 
 # IDE/editor configs
 .vscode/
@@ -21,44 +22,13 @@ env/
 # OS files
 .DS_Store
 Thumbs.db
-=======
-__pycache__/
-*.pyc
-instance/
-*.sqlite3
-*.log
-.env
-.migrations/
-*.db
-*.egg-info/
-*.DS_Store
-*.coverage
-*.pkl
-*.pyo
-*.pyd
-*.swp
-*.swo
-*.bak
-*.tmp
-*.orig
-*.idea/
-*.vscode/
-*.pytest_cache/
-*.mypy_cache/
-*.tox/
-*.coverage.*
-*.hypothesis/
-# Python cache
-__pycache__/
-*.pyc
 
-# Virtual environment
-venv/
-
-# Coverage
+# Test & Coverage
+.pytest_cache/
+.mypy_cache/
+.tox/
 .coverage
 htmlcov/
 
 # Migrations cache
 migrations/__pycache__/
->>>>>>> dedf973abac1d347341588eaddc038a94c91c165

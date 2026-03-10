@@ -50,6 +50,7 @@ def create_app():
         "https://project-tracker-frontend-sandy.vercel.app",
         "https://project-tracker-frontend-rlw4k1ska-samuels-projects-2d3d52d2.vercel.app",
         "https://project-tracker-frontend-samuels-projects-2d3d52d2.vercel.app",
+        "https://project-company-tracker-frontend.vercel.app",
     }
 
     # ✅ Add FRONTEND_URL from environment if available
@@ -74,6 +75,8 @@ def create_app():
         if origin and "vercel.app" in origin:
             response.headers["Access-Control-Allow-Origin"] = origin
             response.headers["Access-Control-Allow-Credentials"] = "true"
+            response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With"
+            response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, PATCH"
         return response
 
     # Initialize DB + migrations

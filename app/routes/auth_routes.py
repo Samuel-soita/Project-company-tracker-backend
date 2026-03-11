@@ -20,13 +20,15 @@ def debug_db():
         return jsonify({
             "status": "connected",
             "db_uri_obfuscated": current_app.config.get('SQLALCHEMY_DATABASE_URI', '').split('@')[-1],
-            "user_count": user_count
+            "user_count": user_count,
+            "version": "v1.0.3-table-creation-check"
         }), 200
     except Exception as e:
         return jsonify({
             "status": "error",
             "error": str(e),
-            "db_uri_obfuscated": current_app.config.get('SQLALCHEMY_DATABASE_URI', '').split('@')[-1]
+            "db_uri_obfuscated": current_app.config.get('SQLALCHEMY_DATABASE_URI', '').split('@')[-1],
+            "version": "v1.0.3-table-creation-check"
         }), 500
 
 # -----------------------------

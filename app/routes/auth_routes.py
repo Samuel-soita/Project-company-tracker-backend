@@ -8,8 +8,16 @@ import string
 from datetime import datetime, timedelta
 import logging
 import os
+import os
+from flask import current_app
 
 auth_routes = Blueprint('auth_routes', __name__)
+
+@auth_routes.route('/auth/debug', methods=['GET'])
+def debug_db():
+    return jsonify({
+        "db_uri": current_app.config.get('SQLALCHEMY_DATABASE_URI', 'NOT_SET')
+    }), 200
 
 # -----------------------------
 # Configure logger

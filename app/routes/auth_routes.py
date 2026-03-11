@@ -129,8 +129,8 @@ def login():
         'jwt',
         token,
         httponly=True,
-        secure=is_production,
-        samesite='strict',
+        secure=current_app.config.get('JWT_COOKIE_SECURE', is_production),
+        samesite=current_app.config.get('JWT_COOKIE_SAMESITE', 'Lax'),
         max_age=24 * 60 * 60  # 24 hours
     )
 
@@ -198,8 +198,8 @@ def verify_2fa():
         'jwt',
         token,
         httponly=True,
-        secure=is_production,
-        samesite='strict',
+        secure=current_app.config.get('JWT_COOKIE_SECURE', is_production),
+        samesite=current_app.config.get('JWT_COOKIE_SAMESITE', 'Lax'),
         max_age=24 * 60 * 60  # 24 hours
     )
 
@@ -265,8 +265,8 @@ def logout():
         'jwt',
         '',
         httponly=True,
-        secure=is_production,
-        samesite='strict',
+        secure=current_app.config.get('JWT_COOKIE_SECURE', is_production),
+        samesite=current_app.config.get('JWT_COOKIE_SAMESITE', 'Lax'),
         max_age=0  # Expire immediately
     )
 

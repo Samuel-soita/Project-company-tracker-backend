@@ -25,6 +25,10 @@ class Config:
         SQLALCHEMY_DATABASE_URI = f'postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
     
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        "pool_pre_ping": True,
+        "pool_recycle": 3600,
+    }
 
     # Cloudinary
     CLOUDINARY_CLOUD_NAME = os.environ.get('CLOUDINARY_CLOUD_NAME')
@@ -41,7 +45,9 @@ class Config:
 
     # JWT Configuration
     JWT_COOKIE_SECURE = FLASK_ENV == 'production' or NODE_ENV == 'production'
-    JWT_COOKIE_SAMESITE = 'strict'
+    # In production, frontend (Vercel) and backend (Render) are on different domains.
+    # SameSite=None is required for the browser to send cross-domain cookies.
+    JWT_COOKIE_SAMESITE = 'None' if JWT_COOKIE_SECURE else 'Lax'
 
     # CORS
     CORS_ORIGIN = os.environ.get('CORS_ORIGIN', FRONTEND_URL)

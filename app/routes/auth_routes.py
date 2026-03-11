@@ -49,26 +49,37 @@ def generate_2fa_code():
 # -----------------------------
 @auth_routes.route('/auth/register', methods=['POST'])
 def register():
-    data = request.get_json(silent=True) or {}
+    try:
+        data = request.get_json(silent=True) or {}
 
-    name = data.get('name')
-    email = data.get('email')
-    password = data.get('password')
-    role = data.get('role', 'Student')
+        name = data.get('name')
+        email = data.get('email')
+        password = data.get('password')
+        role = data.get('role', 'Student')
 
-    if not all([name, email, password]):
-        return jsonify({'message': 'Name, email, and password are required'}), 400
+        logger.info(f"Attempting registration for {email}")
 
-    if User.query.filter_by(email=email).first():
-        return jsonify({'message': 'Email already registered'}), 400
+        if not all([name, email, password]):
+            return jsonify({'message': 'Name, email, and password are required'}), 400
 
-    user = User(name=name, email=email, role=role)
-    user.set_password(password)
-    db.session.add(user)
-    db.session.commit()
+        if User.query.filter_by(email=email).first():
+            return jsonify({'message': 'Email already registered'}), 400
 
-    logger.info(f"New user registered: {email}")
-    return jsonify({'message': 'User registered successfully.'}), 201
+        user = User(name=name, email=email, role=role)
+        user.set_password(password)
+        db.session.add(user)
+        db.session.commit()
+
+        logger.info(f"New user registered: {email}")
+        return jsonify({'message': 'User registered successfully.'}), 201
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Registration error: {str(e)}")
+        return jsonify({
+            'message': 'Registration failed',
+            'error': str(e),
+            'type': type(e).__name__
+        }), 500
 
 # -----------------------------
 # Login endpoint

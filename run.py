@@ -83,6 +83,10 @@ def create_app():
     db.init_app(app)
     Migrate(app, db)
 
+    with app.app_context():
+        db.create_all()
+        print("✅ Database tables verified/created.")
+
     # Register blueprints
     app.register_blueprint(auth_routes)
     app.register_blueprint(user_routes)

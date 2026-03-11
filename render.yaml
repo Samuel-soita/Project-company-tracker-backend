@@ -3,7 +3,7 @@ services:
   - type: web
     name: project-tracker-backend
     runtime: python
-    buildCommand: "./build.sh && flask db upgrade"
+    buildCommand: "./build.sh"
     preDeployCommand: "flask db upgrade"
     startCommand: "gunicorn -w 4 -b 0.0.0.0:$PORT wsgi:app"
     envVars:

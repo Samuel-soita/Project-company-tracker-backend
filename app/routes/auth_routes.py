@@ -1,6 +1,4 @@
 from flask import Blueprint, request, jsonify, make_response
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
 from app.models import db, User
 from app.utils.auth import generate_jwt
 from app.utils.email_utils import send_2fa_code_email
@@ -10,9 +8,6 @@ import string
 from datetime import datetime, timedelta
 import logging
 import os
-
-# Rate limiter for auth routes
-auth_limiter = Limiter(get_remote_address, default_limits=["10 per minute"])
 
 auth_routes = Blueprint('auth_routes', __name__)
 
@@ -33,7 +28,6 @@ def generate_2fa_code():
 # Register new user
 # -----------------------------
 @auth_routes.route('/auth/register', methods=['POST'])
-@auth_limiter.limit("5 per hour")  # Stricter limit for registration
 def register():
     data = request.get_json(silent=True) or {}
 
@@ -60,7 +54,6 @@ def register():
 # Login endpoint
 # -----------------------------
 @auth_routes.route('/auth/login', methods=['POST'])
-@auth_limiter.limit("5 per minute")  # Prevent brute force attacks
 def login():
     # FIX: ensure data is always a dict
     data = request.get_json(silent=True) or {}
@@ -134,7 +127,6 @@ def login():
 # Verify 2FA code
 # -----------------------------
 @auth_routes.route('/auth/verify-2fa', methods=['POST'])
-@auth_limiter.limit("3 per minute")  # Very strict for 2FA attempts
 def verify_2fa():
     data = request.get_json(silent=True) or {}
 

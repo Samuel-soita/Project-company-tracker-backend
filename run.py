@@ -106,7 +106,7 @@ def create_app():
     # Health check endpoint
     @app.route("/health")
     def health():
-        return {"status": "ok", "version": "v1.0.4-cors-db-final"}
+        return {"status": "ok"}
 
     with app.app_context():
         print("\n🚀 Registered Flask Routes:")

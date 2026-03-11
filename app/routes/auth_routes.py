@@ -13,24 +13,6 @@ from flask import current_app
 
 auth_routes = Blueprint('auth_routes', __name__)
 
-@auth_routes.route('/auth/debug', methods=['GET'])
-def debug_db():
-    try:
-        user_count = User.query.count()
-        return jsonify({
-            "status": "connected",
-            "db_uri_obfuscated": current_app.config.get('SQLALCHEMY_DATABASE_URI', '').split('@')[-1],
-            "user_count": user_count,
-            "version": "v1.0.3-table-creation-check"
-        }), 200
-    except Exception as e:
-        return jsonify({
-            "status": "error",
-            "error": str(e),
-            "db_uri_obfuscated": current_app.config.get('SQLALCHEMY_DATABASE_URI', '').split('@')[-1],
-            "version": "v1.0.3-table-creation-check"
-        }), 500
-
 # -----------------------------
 # Configure logger
 # -----------------------------

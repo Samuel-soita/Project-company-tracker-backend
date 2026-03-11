@@ -15,9 +15,19 @@ auth_routes = Blueprint('auth_routes', __name__)
 
 @auth_routes.route('/auth/debug', methods=['GET'])
 def debug_db():
-    return jsonify({
-        "db_uri": current_app.config.get('SQLALCHEMY_DATABASE_URI', 'NOT_SET')
-    }), 200
+    try:
+        user_count = User.query.count()
+        return jsonify({
+            "status": "connected",
+            "db_uri_obfuscated": current_app.config.get('SQLALCHEMY_DATABASE_URI', '').split('@')[-1],
+            "user_count": user_count
+        }), 200
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "error": str(e),
+            "db_uri_obfuscated": current_app.config.get('SQLALCHEMY_DATABASE_URI', '').split('@')[-1]
+        }), 500
 
 # -----------------------------
 # Configure logger

@@ -16,9 +16,9 @@ services:
       - key: NODE_ENV
         value: production
       - key: FRONTEND_URL
-        value: https://project-company-tracker.vercel.app
+        value: https://project-company-tracker-frontend.vercel.app
       - key: CORS_ORIGIN
-        value: https://project-company-tracker.vercel.app
+        value: https://project-company-tracker-frontend.vercel.app
       - key: DATABASE_URL
         sync: false # Set this in Render dashboard using the URL you provided
       - key: CLOUDINARY_CLOUD_NAME
